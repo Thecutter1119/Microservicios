@@ -1,0 +1,205 @@
+{
+  "info": {
+    "_postman_id": "5a61a9fb-2e1d-46db-9a0a-9a55f72f2d2b",
+    "name": "ms-domicilios (DOM) - Colección",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url_domicilios", "value": "http://127.0.0.1:8010" },
+    { "key": "auth_admin", "value": "admin" },
+    { "key": "auth_operador", "value": "operador" },
+    { "key": "auth_solicitante", "value": "solicitante-01" },
+    { "key": "repartidor_id", "value": "1" },
+    { "key": "entrega_id", "value": "1" },
+    { "key": "pedido_id", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url_domicilios}}/health"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Repartidores",
+      "item": [
+        {
+          "name": "Crear Repartidor",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_admin}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuario_id\": 221,\n  \"nombre\": \"Sara Jimenez\",\n  \"telefono\": \"3001234567\",\n  \"tipo_vehiculo\": \"moto\",\n  \"placa_vehiculo\": \"ABC-123\",\n  \"zona_cobertura\": \"Norte\"\n}"
+            },
+            "url": "{{base_url_domicilios}}/api/v1/repartidores"
+          }
+        },
+        {
+          "name": "Listar Repartidores por Zona",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_operador}}" }
+            ],
+            "url": {
+              "raw": "{{base_url_domicilios}}/api/v1/repartidores?zona_cobertura=Norte",
+              "host": ["{{base_url_domicilios}}"],
+              "path": ["api", "v1", "repartidores"],
+              "query": [{ "key": "zona_cobertura", "value": "Norte" }]
+            }
+          }
+        },
+        {
+          "name": "Consultar Repartidor",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_operador}}" }
+            ],
+            "url": "{{base_url_domicilios}}/api/v1/repartidores/{{repartidor_id}}"
+          }
+        },
+        {
+          "name": "Actualizar Repartidor",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_admin}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"telefono\": \"3009999999\"\n}"
+            },
+            "url": "{{base_url_domicilios}}/api/v1/repartidores/{{repartidor_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Entregas",
+      "item": [
+        {
+          "name": "Crear Entrega",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_operador}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pedido_id\": {{pedido_id}},\n  \"origen\": \"Bodega\",\n  \"destino\": \"Norte - Calle 10\"\n}"
+            },
+            "url": "{{base_url_domicilios}}/api/v1/entregas"
+          }
+        },
+        {
+          "name": "Consultar Entrega",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_operador}}" }
+            ],
+            "url": "{{base_url_domicilios}}/api/v1/entregas/{{entrega_id}}"
+          }
+        },
+        {
+          "name": "Actualizar Entrega",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_operador}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"observaciones\": \"Actualización desde Postman\"\n}"
+            },
+            "url": "{{base_url_domicilios}}/api/v1/entregas/{{entrega_id}}"
+          }
+        },
+        {
+          "name": "Asignar Repartidor",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_operador}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"repartidor_id\": {{repartidor_id}}\n}"
+            },
+            "url": "{{base_url_domicilios}}/api/v1/entregas/{{entrega_id}}/asignar"
+          }
+        },
+        {
+          "name": "Cambiar Estado (PATCH)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_operador}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"en_camino\",\n  \"latitud\": 4.65,\n  \"longitud\": -74.05\n}"
+            },
+            "url": "{{base_url_domicilios}}/api/v1/entregas/{{entrega_id}}/estado"
+          }
+        },
+        {
+          "name": "Crear Seguimiento Manual",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_operador}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"latitud\": 4.651,\n  \"longitud\": -74.051,\n  \"descripcion\": \"Punto manual\"\n}"
+            },
+            "url": "{{base_url_domicilios}}/api/v1/entregas/{{entrega_id}}/seguimiento"
+          }
+        },
+        {
+          "name": "Listar Seguimiento",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_operador}}" }
+            ],
+            "url": "{{base_url_domicilios}}/api/v1/entregas/{{entrega_id}}/seguimiento"
+          }
+        },
+        {
+          "name": "Calificar Entrega",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_solicitante}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"puntaje\": 5,\n  \"comentario\": \"Excelente servicio\"\n}"
+            },
+            "url": "{{base_url_domicilios}}/api/v1/entregas/{{entrega_id}}/calificaciones"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "python.defaultInterpreterPath": "${workspaceFolder}/ms-domicilios-app/.venv/Scripts/python.exe",
+  "python.terminal.activateEnvironment": true,
+  "files.exclude": {
+    "**/DOM-*.md": false,
+    "**/Documentacion": false,
+    "**/Archivos-DOM": false
+  },
+  "explorer.excludeGitIgnore": true
+}

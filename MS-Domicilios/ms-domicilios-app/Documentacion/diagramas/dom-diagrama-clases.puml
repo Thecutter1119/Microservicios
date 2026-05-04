@@ -1,0 +1,477 @@
+@startuml dom-diagrama-clases
+title Diagrama de Clases — ms-domicilios [DOM]\nMódulo 4 · Logística y Proveedores · FastAPI + Python + PostgreSQL
+
+skinparam classAttributeIconSize 0
+skinparam classFontSize 12
+skinparam classHeaderBackgroundColor #E3F2FD
+skinparam classBorderColor #1565C0
+skinparam ArrowColor #1565C0
+skinparam NoteBackgroundColor #FFF9C4
+skinparam NoteBorderColor #F9A825
+skinparam packageBackgroundColor #F5F5F5
+skinparam packageBorderColor #9E9E9E
+skinparam linetype ortho
+
+' ══════════════════════════════════════════════════════
+'  ENUMERACIONES
+' ══════════════════════════════════════════════════════
+
+enum EstadoRepartidor {
+  DISPONIBLE
+  EN_RUTA
+  INACTIVO
+}
+
+enum EstadoEntrega {
+  ASIGNADA
+  EN_CAMINO
+  ENTREGADA
+  FALLIDA
+  DEVUELTA
+}
+
+enum TipoTarifa {
+  FIJA
+  POR_DISTANCIA
+}
+
+' ══════════════════════════════════════════════════════
+'  ENTIDADES DEL DOMINIO
+' ══════════════════════════════════════════════════════
+
+class Repartidor {
+  - id : int  <<PK>>
+  - usuario_id : int  <<REF AUTH>>
+  - nombre : str
+  - telefono : str
+  - tipo_vehiculo : str
+  - placa_vehiculo : str  <<UNIQUE>>
+  - estado : EstadoRepartidor
+  - zona_cobertura : str
+  - calificacion_promedio : Decimal(3,2)
+  - created_at : datetime
+  - updated_at : datetime
+  --
+  + actualizar_calificacion_promedio() : void
+  + cambiar_estado(nuevo_estado: EstadoRepartidor) : void
+  + esta_disponible() : bool
+  + cubre_zona(zona: str) : bool
+}
+
+class Entrega {
+  - id : int  <<PK>>
+  - pedido_id : int  <<REF PED>>
+  - repartidor_id : int  <<FK>>
+  - direccion_origen : str
+  - direccion_destino : str
+  - zona_destino : str
+  - estado : EstadoEntrega
+  - fecha_asignacion : datetime
+  - fecha_recogida : datetime
+  - fecha_entrega : datetime
+  - costo_envio : Decimal(10,2)
+  - observaciones : str
+  - created_at : datetime
+  - updated_at : datetime
+  --
+  + asignar_repartidor(repartidor: Repartidor) : void
+  + actualizar_estado(nuevo_estado: EstadoEntrega) : void
+  + calcular_costo(tarifa: TarifaEnvio) : Decimal
+  + puede_ser_calificada() : bool
+}
+
+class PuntoSeguimiento {
+  - id : int  <<PK>>
+  - entrega_id : int  <<FK>>
+  - estado : EstadoEntrega
+  - latitud : Decimal(10,7)
+  - longitud : Decimal(10,7)
+  - fecha_hora : datetime
+  - nota : str
+  - created_at : datetime
+  - updated_at : datetime
+}
+
+class Calificacion {
+  - id : int  <<PK>>
+  - entrega_id : int  <<FK, UNIQUE>>
+  - calificador_id : int  <<REF AUTH>>
+  - puntuacion : int  <<1..5>>
+  - comentario : str
+  - fecha : datetime
+  - created_at : datetime
+  - updated_at : datetime
+  --
+  + validar_puntuacion() : bool
+}
+
+class TarifaEnvio {
+  - id : int  <<PK>>
+  - nombre : str
+  - tipo : TipoTarifa
+  - tarifa_base : Decimal(10,2)
+  - costo_por_km : Decimal(8,2)
+  - zona_aplicable : str
+  - activo : bool
+  - created_at : datetime
+  - updated_at : datetime
+  --
+  + calcular_costo(distancia_km: float) : Decimal
+  + aplica_a_zona(zona: str) : bool
+}
+
+' ══════════════════════════════════════════════════════
+'  SCHEMAS / DTOs  (capa de presentación)
+' ══════════════════════════════════════════════════════
+
+class RepartidorCreateRequest <<(S,#D0E8FF) Schema>> {
+  + usuario_id : int
+  + nombre : str
+  + telefono : str
+  + tipo_vehiculo : str
+  + placa_vehiculo : str
+  + zona_cobertura : str
+}
+
+class RepartidorResponse <<(S,#D0E8FF) Schema>> {
+  + id : int
+  + nombre : str
+  + telefono : str
+  + tipo_vehiculo : str
+  + placa_vehiculo : str
+  + estado : str
+  + zona_cobertura : str
+  + calificacion_promedio : float
+  + created_at : datetime
+}
+
+class EntregaCreateRequest <<(S,#D0E8FF) Schema>> {
+  + pedido_id : int
+  + direccion_origen : str
+  + direccion_destino : str
+  + zona_destino : str
+  + observaciones : str
+}
+
+class EntregaResponse <<(S,#D0E8FF) Schema>> {
+  + id : int
+  + pedido_id : int
+  + repartidor_id : int
+  + direccion_origen : str
+  + direccion_destino : str
+  + zona_destino : str
+  + estado : str
+  + costo_envio : float
+  + fecha_asignacion : datetime
+  + fecha_entrega : datetime
+}
+
+class AsignarRepartidorRequest <<(S,#D0E8FF) Schema>> {
+  + repartidor_id : int
+}
+
+class ActualizarEstadoRequest <<(S,#D0E8FF) Schema>> {
+  + estado : str
+  + latitud : float
+  + longitud : float
+  + nota : str
+}
+
+class SeguimientoCreateRequest <<(S,#D0E8FF) Schema>> {
+  + latitud : float
+  + longitud : float
+  + nota : str
+}
+
+class SeguimientoResponse <<(S,#D0E8FF) Schema>> {
+  + id : int
+  + entrega_id : int
+  + estado : str
+  + latitud : float
+  + longitud : float
+  + fecha_hora : datetime
+  + nota : str
+}
+
+class CalificacionCreateRequest <<(S,#D0E8FF) Schema>> {
+  + puntuacion : int
+  + comentario : str
+}
+
+class CalificacionResponse <<(S,#D0E8FF) Schema>> {
+  + id : int
+  + entrega_id : int
+  + calificador_id : int
+  + puntuacion : int
+  + comentario : str
+  + fecha : datetime
+}
+
+class StandardResponse <<(S,#D0E8FF) Schema>> {
+  + request_id : str
+  + success : bool
+  + data : Any
+  + message : str
+  + timestamp : datetime
+}
+
+' ══════════════════════════════════════════════════════
+'  SERVICIOS (lógica de negocio)
+' ══════════════════════════════════════════════════════
+
+class RepartidorService <<(V,#C8E6C9) Service>> {
+  + crear_repartidor(data: RepartidorCreateRequest) : Repartidor
+  + obtener_repartidor(id: int) : Repartidor
+  + actualizar_repartidor(id: int, data: dict) : Repartidor
+  + listar_disponibles(zona: str) : list[Repartidor]
+  + cambiar_estado(id: int, estado: EstadoRepartidor) : Repartidor
+  + obtener_calificaciones(id: int) : list[Calificacion]
+}
+
+class EntregaService <<(V,#C8E6C9) Service>> {
+  + crear_entrega(data: EntregaCreateRequest) : Entrega
+  + obtener_entrega(id: int) : Entrega
+  + actualizar_entrega(id: int, data: dict) : Entrega
+  + listar_entregas(filtros: dict) : list[Entrega]
+  + asignar_repartidor(entrega_id: int, repartidor_id: int) : Entrega
+  + actualizar_estado(entrega_id: int, estado: EstadoEntrega) : Entrega
+  - _validar_zona_cobertura(repartidor: Repartidor, zona: str) : bool
+  - _calcular_costo(zona: str) : Decimal
+}
+
+class SeguimientoService <<(V,#C8E6C9) Service>> {
+  + registrar_punto(entrega_id: int, data: SeguimientoCreateRequest) : PuntoSeguimiento
+  + registrar_automatico(entrega: Entrega, estado: EstadoEntrega) : PuntoSeguimiento
+  + obtener_historial(entrega_id: int) : list[PuntoSeguimiento]
+}
+
+class CalificacionService <<(V,#C8E6C9) Service>> {
+  + registrar_calificacion(entrega_id: int, data: CalificacionCreateRequest) : Calificacion
+  - _actualizar_promedio_repartidor(repartidor_id: int) : void
+}
+
+class TarifaService <<(V,#C8E6C9) Service>> {
+  + obtener_tarifa_aplicable(zona: str) : TarifaEnvio
+  + calcular_costo_envio(zona: str, distancia_km: float) : Decimal
+}
+
+' ══════════════════════════════════════════════════════
+'  ROUTERS / CONTROLADORES (capa HTTP)
+' ══════════════════════════════════════════════════════
+
+class RepartidorRouter <<(R,#FFE0B2) Router>> {
+  + POST /repartidores
+  + GET /repartidores
+  + GET /repartidores/{id}
+  + PUT /repartidores/{id}
+  + PATCH /repartidores/{id}/estado
+  + GET /repartidores/{id}/calificaciones
+}
+
+class EntregaRouter <<(R,#FFE0B2) Router>> {
+  + POST /entregas
+  + GET /entregas
+  + GET /entregas/{id}
+  + PUT /entregas/{id}
+  + POST /entregas/{id}/asignar
+  + PATCH /entregas/{id}/estado
+  + POST /entregas/{id}/seguimiento
+  + GET /entregas/{id}/seguimiento
+  + POST /entregas/{id}/calificaciones
+}
+
+' ══════════════════════════════════════════════════════
+'  REPOSITORIOS (capa de persistencia)
+' ══════════════════════════════════════════════════════
+
+class RepartidorRepository <<(D,#EDE7F6) Repository>> {
+  + save(repartidor: Repartidor) : Repartidor
+  + find_by_id(id: int) : Repartidor
+  + find_disponibles_por_zona(zona: str) : list[Repartidor]
+  + update(repartidor: Repartidor) : Repartidor
+}
+
+class EntregaRepository <<(D,#EDE7F6) Repository>> {
+  + save(entrega: Entrega) : Entrega
+  + find_by_id(id: int) : Entrega
+  + find_all(filtros: dict) : list[Entrega]
+  + update(entrega: Entrega) : Entrega
+}
+
+class SeguimientoRepository <<(D,#EDE7F6) Repository>> {
+  + save(punto: PuntoSeguimiento) : PuntoSeguimiento
+  + find_by_entrega_id(entrega_id: int) : list[PuntoSeguimiento]
+}
+
+class CalificacionRepository <<(D,#EDE7F6) Repository>> {
+  + save(calificacion: Calificacion) : Calificacion
+  + find_by_entrega_id(entrega_id: int) : Calificacion
+  + find_by_repartidor_id(repartidor_id: int) : list[Calificacion]
+  + calcular_promedio(repartidor_id: int) : Decimal
+}
+
+class TarifaRepository <<(D,#EDE7F6) Repository>> {
+  + find_activa_por_zona(zona: str) : TarifaEnvio
+  + find_all_activas() : list[TarifaEnvio]
+}
+
+' ══════════════════════════════════════════════════════
+'  CLIENTES HTTP (referencias externas)
+' ══════════════════════════════════════════════════════
+
+class AuthClient <<(C,#FFCDD2) HttpClient>> {
+  - base_url : str
+  - app_token : str
+  --
+  + validar_sesion(session_token: str) : dict
+}
+
+class RolesClient <<(C,#FFCDD2) HttpClient>> {
+  - base_url : str
+  - app_token : str
+  --
+  + verificar_permiso(rol: str, codigo_permiso: str) : bool
+}
+
+class PedidosClient <<(C,#FFCDD2) HttpClient>> {
+  - base_url : str
+  - app_token : str
+  --
+  + obtener_pedido(pedido_id: int) : dict
+}
+
+class NotificacionesClient <<(C,#FFCDD2) HttpClient>> {
+  - base_url : str
+  - app_token : str
+  --
+  + enviar_notificacion(usuario_id: int, mensaje: str) : void
+}
+
+class AuditoriaClient <<(C,#FFCDD2) HttpClient>> {
+  - base_url : str
+  - app_token : str
+  --
+  + enviar_log(log_entry: dict) : void  <<async fire-and-forget>>
+}
+
+' ══════════════════════════════════════════════════════
+'  RELACIONES ENTRE ENTIDADES
+' ══════════════════════════════════════════════════════
+
+Repartidor "1" o-- "0..*" Entrega : realiza >
+Entrega "1" *-- "0..*" PuntoSeguimiento : tiene >
+Entrega "1" o-- "0..1" Calificacion : recibe >
+Repartidor --> EstadoRepartidor
+Entrega --> EstadoEntrega
+PuntoSeguimiento --> EstadoEntrega
+TarifaEnvio --> TipoTarifa
+
+' ══════════════════════════════════════════════════════
+'  RELACIONES ROUTER → SERVICE
+' ══════════════════════════════════════════════════════
+
+RepartidorRouter ..> RepartidorService : usa
+EntregaRouter ..> EntregaService : usa
+EntregaRouter ..> SeguimientoService : usa
+EntregaRouter ..> CalificacionService : usa
+
+' ══════════════════════════════════════════════════════
+'  RELACIONES SERVICE → REPOSITORY
+' ══════════════════════════════════════════════════════
+
+RepartidorService ..> RepartidorRepository : usa
+EntregaService ..> EntregaRepository : usa
+EntregaService ..> RepartidorRepository : usa
+EntregaService ..> TarifaService : usa
+SeguimientoService ..> SeguimientoRepository : usa
+CalificacionService ..> CalificacionRepository : usa
+CalificacionService ..> RepartidorRepository : usa
+TarifaService ..> TarifaRepository : usa
+
+' ══════════════════════════════════════════════════════
+'  RELACIONES SERVICE → CLIENT
+' ══════════════════════════════════════════════════════
+
+EntregaService ..> PedidosClient : consulta pedido
+EntregaService ..> NotificacionesClient : notifica cambio estado
+RepartidorService ..> AuthClient : valida sesión
+EntregaService ..> AuthClient : valida sesión
+CalificacionService ..> AuthClient : valida sesión
+RepartidorService ..> RolesClient : verifica permiso
+EntregaService ..> RolesClient : verifica permiso
+CalificacionService ..> RolesClient : verifica permiso
+EntregaService ..> AuditoriaClient : envía log
+RepartidorService ..> AuditoriaClient : envía log
+CalificacionService ..> AuditoriaClient : envía log
+
+' ══════════════════════════════════════════════════════
+'  RELACIONES SCHEMA → ENTIDAD
+' ══════════════════════════════════════════════════════
+
+RepartidorCreateRequest ..> Repartidor : mapea a
+RepartidorResponse ..> Repartidor : construida desde
+EntregaCreateRequest ..> Entrega : mapea a
+EntregaResponse ..> Entrega : construida desde
+SeguimientoCreateRequest ..> PuntoSeguimiento : mapea a
+SeguimientoResponse ..> PuntoSeguimiento : construida desde
+CalificacionCreateRequest ..> Calificacion : mapea a
+CalificacionResponse ..> Calificacion : construida desde
+
+' ══════════════════════════════════════════════════════
+'  NOTAS
+' ══════════════════════════════════════════════════════
+
+note right of AuthClient
+  <<REF EXTERNA>>
+  ms-autenticacion [AUTH]
+  POST /api/v1/sesiones/validar
+  Sync · Timeout 3s · Crítico
+end note
+
+note right of RolesClient
+  <<REF EXTERNA>>
+  ms-roles [ROL]
+  GET /api/v1/permisos/verificar
+  Sync · Timeout 2s · Crítico
+end note
+
+note right of PedidosClient
+  <<REF EXTERNA>>
+  ms-pedidos [PED]
+  GET /api/v1/pedidos/{id}
+  Sync · Timeout 5s · Crítico al crear entrega
+end note
+
+note right of NotificacionesClient
+  <<REF EXTERNA>>
+  ms-notificaciones [NOT]
+  POST /api/v1/notificaciones
+  Sync · Tolerante a fallos
+end note
+
+note right of AuditoriaClient
+  <<REF EXTERNA>>
+  ms-auditoria [AUD]
+  POST /api/v1/logs
+  Async · Fire-and-forget · No crítico
+end note
+
+note bottom of Calificacion
+  Solo 1 calificación por entrega (UNIQUE).
+  Solo permitida cuando estado = ENTREGADA.
+  Puntuación válida: 1 a 5.
+end note
+
+note bottom of Repartidor
+  usuario_id → REF ms-autenticacion [AUTH]
+  calificacion_promedio: recalculada
+  automáticamente con cada nueva calificación.
+end note
+
+note bottom of Entrega
+  pedido_id → REF ms-pedidos [PED]
+  Cada cambio de estado genera automáticamente
+  un PuntoSeguimiento (registro automático).
+end note
+
+@enduml

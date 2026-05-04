@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ReportEngine — ms-reportes [REP]</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c0f;
+    --surface: #111318;
+    --surface2: #181c23;
+    --border: #1e2530;
+    --border2: #252d3a;
+    --accent: #e8c547;
+    --accent2: #c4a832;
+    --text: #e8eaf0;
+    --muted: #6b7589;
+    --muted2: #909ab0;
+    --green: #3ecf8e;
+    --red: #f56565;
+    --blue: #60a5fa;
+    --orange: #fb923c;
+    --purple: #a78bfa;
+    --danger: #ef4444;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; min-height: 100vh; display: flex; }
+
+  /* ── SIDEBAR ── */
+  .sidebar { width: 220px; min-height: 100vh; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
+  .sidebar-logo { padding: 24px 20px 20px; border-bottom: 1px solid var(--border); }
+  .logo-mark { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--accent); letter-spacing: -0.5px; }
+  .logo-sub { font-size: 10px; color: var(--muted); font-family: 'DM Mono', monospace; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 2px; }
+  .sidebar-nav { padding: 16px 10px; flex: 1; }
+  .nav-section { font-size: 10px; font-family: 'DM Mono', monospace; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; padding: 8px 10px 6px; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 7px; cursor: pointer; color: var(--muted2); transition: all 0.15s; margin-bottom: 2px; font-size: 13.5px; }
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active { background: rgba(232,197,71,0.1); color: var(--accent); }
+  .nav-item .icon { font-size: 16px; width: 20px; text-align: center; }
+  .sidebar-footer { padding: 16px; border-top: 1px solid var(--border); }
+  .user-chip { display: flex; align-items: center; gap: 10px; }
+  .user-avatar { width: 30px; height: 30px; border-radius: 8px; background: linear-gradient(135deg, var(--accent2), var(--accent)); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 12px; color: #000; }
+  .user-name { font-size: 12.5px; font-weight: 500; }
+  .user-role { font-size: 10px; color: var(--muted); font-family: 'DM Mono', monospace; }
+
+  /* ── MAIN ── */
+  .main { margin-left: 220px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+  .topbar { height: 56px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 28px; gap: 16px; position: sticky; top: 0; z-index: 50; }
+  .page-title { font-family: 'DM Serif Display', serif; font-size: 17px; color: var(--text); flex: 1; }
+  .topbar-actions { display: flex; gap: 10px; align-items: center; }
+  .btn { padding: 7px 14px; border-radius: 7px; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px; }
+  .btn-primary { background: var(--accent); color: #000; }
+  .btn-primary:hover { background: #f0d05a; }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-ghost { background: transparent; color: var(--muted2); border: 1px solid var(--border2); }
+  .btn-ghost:hover { background: var(--surface2); color: var(--text); }
+  .btn-danger { background: rgba(239,68,68,0.12); color: var(--red); border: 1px solid rgba(239,68,68,0.2); }
+  .btn-danger:hover { background: rgba(239,68,68,0.2); }
+  .btn-sm { padding: 5px 10px; font-size: 12px; }
+  .content { padding: 28px; flex: 1; }
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ── STAT CARDS ── */
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; position: relative; overflow: hidden; }
+  .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+  .stat-card.yellow::before { background: var(--accent); }
+  .stat-card.green::before { background: var(--green); }
+  .stat-card.blue::before { background: var(--blue); }
+  .stat-card.purple::before { background: var(--purple); }
+  .stat-label { font-size: 11px; color: var(--muted); font-family: 'DM Mono', monospace; text-transform: uppercase; letter-spacing: 1px; }
+  .stat-value { font-family: 'DM Serif Display', serif; font-size: 32px; margin: 6px 0 4px; }
+  .stat-delta { font-size: 11px; color: var(--muted2); }
+  .stat-delta.up { color: var(--green); }
+
+  /* ── TABLES ── */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 20px; }
+  .card-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+  .card-title { font-weight: 600; font-size: 14px; }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; padding: 10px 20px; font-size: 11px; font-family: 'DM Mono', monospace; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--border); font-weight: 400; }
+  td { padding: 12px 20px; border-bottom: 1px solid var(--border); font-size: 13.5px; color: var(--muted2); }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.01); color: var(--text); }
+  .mono { font-family: 'DM Mono', monospace; font-size: 12px; }
+
+  /* ── BADGES ── */
+  .badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-family: 'DM Mono', monospace; font-weight: 500; }
+  .badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; }
+  .badge-green { background: rgba(62,207,142,0.1); color: var(--green); }
+  .badge-green::before { background: var(--green); }
+  .badge-red { background: rgba(245,101,101,0.1); color: var(--red); }
+  .badge-red::before { background: var(--red); }
+  .badge-orange { background: rgba(251,146,60,0.1); color: var(--orange); }
+  .badge-orange::before { background: var(--orange); }
+  .badge-blue { background: rgba(96,165,250,0.1); color: var(--blue); }
+  .badge-blue::before { background: var(--blue); }
+  .badge-purple { background: rgba(167,139,250,0.1); color: var(--purple); }
+  .badge-purple::before { background: var(--purple); }
+  .badge-muted { background: rgba(107,117,137,0.12); color: var(--muted2); }
+  .badge-muted::before { background: var(--muted2); }
+
+  /* ── MODALS ── */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 200; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--surface); border: 1px solid var(--border2); border-radius: 16px; width: 560px; max-width: 95vw; max-height: 90vh; overflow-y: auto; }
+  .modal-head { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 16px; border-bottom: 1px solid var(--border); }
+  .modal-title { font-family: 'DM Serif Display', serif; font-size: 17px; }
+  .modal-close { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 18px; padding: 4px 8px; border-radius: 6px; }
+  .modal-close:hover { background: var(--surface2); color: var(--text); }
+  .modal-body { padding: 20px 24px; }
+  .modal-foot { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 24px 20px; border-top: 1px solid var(--border); }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group.full { grid-column: 1 / -1; }
+  .form-group label { font-size: 11.5px; color: var(--muted2); font-weight: 500; }
+  .form-group input, .form-group select, .form-group textarea { background: var(--surface2); border: 1px solid var(--border2); border-radius: 8px; color: var(--text); padding: 9px 12px; font-family: 'DM Sans', sans-serif; font-size: 13.5px; outline: none; width: 100%; transition: border 0.15s; }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--accent); }
+  .form-group textarea { min-height: 80px; resize: vertical; }
+  select option { background: var(--surface2); }
+
+  /* ── TOAST ── */
+  #toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+  .toast { background: var(--surface); border: 1px solid var(--border2); border-radius: 10px; padding: 12px 18px; font-size: 13px; display: flex; align-items: center; gap: 10px; min-width: 280px; max-width: 400px; animation: slideIn 0.2s ease; box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+  .toast.success { border-left: 3px solid var(--green); }
+  .toast.error { border-left: 3px solid var(--red); }
+  .toast.info { border-left: 3px solid var(--blue); }
+  .toast.warning { border-left: 3px solid var(--orange); }
+  @keyframes slideIn { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+  /* ── EMPTY STATE ── */
+  .empty-state { padding: 48px 20px; text-align: center; color: var(--muted); }
+  .empty-icon { font-size: 36px; margin-bottom: 12px; }
+  .empty-text { font-size: 13px; }
+
+  /* ── LOADER ── */
+  .loading { display: flex; align-items: center; justify-content: center; padding: 32px; gap: 10px; color: var(--muted); font-size: 13px; }
+  .spinner { width: 18px; height: 18px; border: 2px solid var(--border2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── REQUEST-ID CHIP ── */
+  .req-id { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); background: var(--surface2); border: 1px solid var(--border); padding: 2px 8px; border-radius: 4px; }
+
+  /* ── TABS ── */
+  .tabs { display: flex; gap: 4px; background: var(--surface2); border-radius: 10px; padding: 4px; margin-bottom: 20px; }
+  .tab { padding: 7px 16px; border-radius: 7px; cursor: pointer; font-size: 13px; color: var(--muted2); transition: all 0.15s; }
+  .tab.active { background: var(--surface); color: var(--text); font-weight: 500; }
+
+  /* ── FIRMA ── */
+  .firma-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .firma-block { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+  .firma-block h3 { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; }
+  .firma-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; font-size: 13px; }
+  .firma-key { color: var(--muted); min-width: 100px; font-family: 'DM Mono', monospace; font-size: 11px; }
+  .firma-val { color: var(--text); font-weight: 500; }
+  .endpoint-list { list-style: none; }
+  .endpoint-list li { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 1px solid var(--border); font-size: 12px; font-family: 'DM Mono', monospace; }
+  .endpoint-list li:last-child { border-bottom: none; }
+  .method-badge { font-size: 10px; padding: 2px 7px; border-radius: 4px; font-weight: 600; min-width: 48px; text-align: center; }
+  .method-get { background: rgba(62,207,142,0.12); color: var(--green); }
+  .method-post { background: rgba(96,165,250,0.12); color: var(--blue); }
+  .method-put { background: rgba(251,146,60,0.12); color: var(--orange); }
+  .method-delete { background: rgba(245,101,101,0.12); color: var(--red); }
+
+  .req-id-bar { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: rgba(232,197,71,0.05); border: 1px solid rgba(232,197,71,0.15); border-radius: 8px; margin-bottom: 16px; font-size: 11px; font-family: 'DM Mono', monospace; color: var(--muted2); }
+  .req-id-bar strong { color: var(--accent); }
+
+  .filter-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .filter-row select, .filter-row input { background: var(--surface2); border: 1px solid var(--border2); border-radius: 7px; color: var(--text); padding: 7px 10px; font-family: 'DM Sans', sans-serif; font-size: 13px; outline: none; }
+  .filter-row select:focus, .filter-row input:focus { border-color: var(--accent); }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ SIDEBAR ═══════════════════ -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">ReportEngine</div>
+    <div class="logo-sub">ms-reportes [REP]</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Principal</div>
+    <div class="nav-item active" data-view="dashboard" onclick="setView('dashboard',this)">
+      <span class="icon">◈</span> Dashboard
+    </div>
+
+    <div class="nav-section">Gestión</div>
+    <div class="nav-item" data-view="plantillas" onclick="setView('plantillas',this)">
+      <span class="icon">⬡</span> Plantillas
+    </div>
+    <div class="nav-item" data-view="reportes" onclick="setView('reportes',this)">
+      <span class="icon">◉</span> Reportes
+    </div>
+    <div class="nav-item" data-view="programaciones" onclick="setView('programaciones',this)">
+      <span class="icon">⊙</span> Programaciones
+    </div>
+
+    <div class="nav-section">Sistema</div>
+    <div class="nav-item" data-view="integraciones" onclick="setView('integraciones',this)">
+      <span class="icon">⬢</span> Integraciones
+    </div>
+    <div class="nav-item" data-view="firma" onclick="setView('firma',this)">
+      <span class="icon">◇</span> Firma API
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-chip">
+      <div class="user-avatar">AD</div>
+      <div class="user-info">
+        <div class="user-name">Administrador</div>
+        <div class="user-role"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="0d6c696064634d78636423686978">[email&#160;protected]</a></div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ═══════════════════ MAIN ═══════════════════ -->
+<main class="main">
+  <div class="topbar">
+    <span class="page-title" id="page-title">Dashboard</span>
+    <div class="topbar-actions" id="topbar-actions">
+      <button class="btn btn-primary" onclick="openModal('modal-solicitar')">＋ Nuevo Reporte</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ═══ DASHBOARD ═══ -->
+    <div class="view active" id="view-dashboard">
+      <div id="req-id-dashboard" class="req-id-bar" style="display:none">
+        <span>Último request:</span> <strong id="last-req-id">—</strong>
+      </div>
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat-card yellow">
+          <div class="stat-label">Plantillas Activas</div>
+          <div class="stat-value" id="stat-plantillas">—</div>
+          <div class="stat-delta">Cargando…</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-label">Reportes Completados</div>
+          <div class="stat-value" id="stat-completados">—</div>
+          <div class="stat-delta">Cargando…</div>
+        </div>
+        <div class="stat-card blue">
+          <div class="stat-label">En Generación</div>
+          <div class="stat-value" id="stat-generando">—</div>
+          <div class="stat-delta">Tiempo real</div>
+        </div>
+        <div class="stat-card purple">
+          <div class="stat-label">Programaciones Activas</div>
+          <div class="stat-value" id="stat-progs">—</div>
+          <div class="stat-delta">Cargando…</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Actividad Reciente — Reportes</span>
+          <button class="btn btn-ghost btn-sm" onclick="cargarDashboard()">↻ Actualizar</button>
+        </div>
+        <div id="tabla-recientes">
+          <div class="loading"><div class="spinner"></div> Cargando reportes…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ PLANTILLAS ═══ -->
+    <div class="view" id="view-plantillas">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <div class="filter-row">
+          <select id="filtro-estado-plantilla" onchange="cargarPlantillas()">
+            <option value="">Todos los estados</option>
+            <option value="activa">Activa</option>
+            <option value="inactiva">Inactiva</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('modal-plantilla')">＋ Nueva Plantilla</button>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Plantillas de Reporte</span>
+          <button class="btn btn-ghost btn-sm" onclick="cargarPlantillas()">↻ Actualizar</button>
+        </div>
+        <div id="tabla-plantillas">
+          <div class="loading"><div class="spinner"></div> Cargando plantillas…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ REPORTES ═══ -->
+    <div class="view" id="view-reportes">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <div class="filter-row">
+          <select id="filtro-estado-reporte" onchange="cargarReportes()">
+            <option value="">Todos los estados</option>
+            <option value="pendiente">Pendiente</option>
+            <option value="generando">Generando</option>
+            <option value="completado">Completado</option>
+            <option value="error">Error</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('modal-solicitar')">＋ Solicitar Reporte</button>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Reportes Generados</span>
+          <button class="btn btn-ghost btn-sm" onclick="cargarReportes()">↻ Actualizar</button>
+        </div>
+        <div id="tabla-reportes">
+          <div class="loading"><div class="spinner"></div> Cargando reportes…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ PROGRAMACIONES ═══ -->
+    <div class="view" id="view-programaciones">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <div class="filter-row">
+          <select id="filtro-estado-prog" onchange="cargarProgramaciones()">
+            <option value="">Todos los estados</option>
+            <option value="activa">Activa</option>
+            <option value="pausada">Pausada</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('modal-programacion')">＋ Nueva Programación</button>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Programaciones de Reporte</span>
+          <button class="btn btn-ghost btn-sm" onclick="cargarProgramaciones()">↻ Actualizar</button>
+        </div>
+        <div id="tabla-programaciones">
+          <div class="loading"><div class="spinner"></div> Cargando programaciones…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ INTEGRACIONES ═══ -->
+    <div class="view" id="view-integraciones">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div class="card">
+          <div class="card-header"><span class="card-title">ms-autenticacion [AUT]</span><span class="badge badge-blue">síncrono</span></div>
+          <div style="padding:20px;display:flex;flex-direction:column;gap:10px">
+            <div style="font-size:12.5px;color:var(--muted2)">Validación de sesión activa (REP-RF-001).</div>
+            <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted)">POST /api/v1/sesiones/validar</div>
+            <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted)">Timeout: 3s — HTTP 401 | 503</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">ms-roles [ROL]</span><span class="badge badge-blue">síncrono</span></div>
+          <div style="padding:20px;display:flex;flex-direction:column;gap:10px">
+            <div style="font-size:12.5px;color:var(--muted2)">Verificación de permisos por funcionalidad (REP-RF-002).</div>
+            <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted)">POST /api/v1/permisos/verificar</div>
+            <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted)">Timeout: 3s — HTTP 403 | 503</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">ms-calificaciones [CAL]</span><span class="badge badge-green">fuente datos</span></div>
+          <div style="padding:20px;display:flex;flex-direction:column;gap:10px">
+            <div style="font-size:12.5px;color:var(--muted2)">Rendimiento académico y promedios (REP-RF-012).</div>
+            <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted)">GET /reportes/rendimiento</div>
+            <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted)">Timeout: 30s — proceso asíncrono interno</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">ms-inventario [INV]</span><span class="badge badge-green">fuente datos</span></div>
+          <div style="padding:20px;display:flex;flex-direction:column;gap:10px">
+            <div style="font-size:12.5px;color:var(--muted2)">Estado de activos, stock crítico y depreciación (REP-RF-012).</div>
+            <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted)">GET /reportes/activos</div>
+            <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted)">Timeout: 30s — proceso asíncrono interno</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">ms-presupuesto [PRE]</span><span class="badge badge-orange">lento</span></div>
+          <div style="padding:20px;display:flex;flex-direction:column;gap:10px">
+            <div style="font-size:12.5px;color:var(--muted2)">Ejecución presupuestal por área y período fiscal (REP-RF-012).</div>
+            <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted)">GET /reportes/ejecucion</div>
+            <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted)">Timeout: 30s — latencia alta esperada</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">ms-auditoria [AUD]</span><span class="badge badge-purple">fire-and-forget</span></div>
+          <div style="padding:20px;display:flex;flex-direction:column;gap:10px">
+            <div style="font-size:12.5px;color:var(--muted2)">Log de auditoría asíncrono al finalizar cada operación (REP-RF-004).</div>
+            <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted)">POST /api/v1/logs</div>
+            <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted)">Timeout: 2s — no crítico, WARNING en fallo</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ FIRMA API ═══ -->
+    <div class="view" id="view-firma">
+      <div id="firma-loading" class="loading"><div class="spinner"></div> Consultando firma del microservicio…</div>
+      <div id="firma-content" style="display:none"></div>
+    </div>
+
+  </div><!-- /content -->
+</main>
+
+<!-- ═══════════════════ MODALS ═══════════════════ -->
+
+<!-- Modal: Solicitar Reporte (REP-RF-011) -->
+<div class="modal-overlay" id="modal-solicitar">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title">Solicitar Reporte</span>
+      <button class="modal-close" onclick="closeModal('modal-solicitar')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Nombre descriptivo del reporte</label>
+          <input type="text" id="rep-nombre" placeholder="Ej: Rendimiento Ing. Sistemas — Q1 2025">
+        </div>
+        <div class="form-group full">
+          <label>Plantilla</label>
+          <select id="rep-plantilla-id"></select>
+        </div>
+        <div class="form-group">
+          <label>Formato de salida</label>
+          <select id="rep-formato">
+            <option value="CSV">CSV</option>
+            <option value="JSON">JSON</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Parámetros (JSON)</label>
+          <input type="text" id="rep-params" placeholder='{"periodo": "2025-Q1"}' value="{}">
+        </div>
+        <div class="form-group full" style="background:rgba(232,197,71,0.07);border:1px solid rgba(232,197,71,0.2);border-radius:8px;padding:12px;flex-direction:row;align-items:center;gap:10px">
+          <span style="font-size:16px">⚡</span>
+          <span style="font-size:12.5px;color:var(--muted2)">Si existe un reporte con los mismos parámetros y plantilla, se retornará desde caché (HTTP 200) sin recalcular.</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-solicitar')">Cancelar</button>
+      <button class="btn btn-primary" id="btn-generar-reporte" onclick="solicitarReporte()">Generar Reporte</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Nueva Plantilla (REP-RF-006) -->
+<div class="modal-overlay" id="modal-plantilla">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title">Nueva Plantilla de Reporte</span>
+      <button class="modal-close" onclick="closeModal('modal-plantilla')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Nombre único (identificador)</label>
+          <input type="text" id="pla-nombre" placeholder="Ej: reporte_rendimiento_v2" style="font-family:'DM Mono',monospace">
+        </div>
+        <div class="form-group full">
+          <label>Descripción</label>
+          <input type="text" id="pla-descripcion" placeholder="Descripción breve del propósito">
+        </div>
+        <div class="form-group full">
+          <label>Microservicios fuente (separados por coma)</label>
+          <input type="text" id="pla-fuentes" placeholder="calificaciones, inventario, presupuesto">
+        </div>
+        <div class="form-group full">
+          <label>Parámetros requeridos (JSON)</label>
+          <textarea id="pla-params" placeholder='[{"nombre":"periodo_id","tipo":"integer","requerido":true}]'>[]</textarea>
+        </div>
+        <div class="form-group full">
+          <label>Configuración de consultas (JSON)</label>
+          <textarea id="pla-config" placeholder='{"calificaciones":{"endpoint":"/reportes/rendimiento","method":"GET"}}'>{"calificaciones":{"endpoint":"/reportes/rendimiento","method":"GET"}}</textarea>
+        </div>
+        <div class="form-group">
+          <label>Estado inicial</label>
+          <select id="pla-estado"><option value="activa">activa</option><option value="inactiva">inactiva</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-plantilla')">Cancelar</button>
+      <button class="btn btn-primary" onclick="crearPlantilla()">Guardar Plantilla</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Nueva Programación (REP-RF-015) -->
+<div class="modal-overlay" id="modal-programacion">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title">Nueva Programación</span>
+      <button class="modal-close" onclick="closeModal('modal-programacion')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Plantilla de Reporte</label>
+          <select id="prog-plantilla-id"></select>
+        </div>
+        <div class="form-group">
+          <label>Periodicidad</label>
+          <select id="prog-periodicidad" onchange="toggleDiaField()">
+            <option value="diario">Diario</option>
+            <option value="semanal">Semanal</option>
+            <option value="mensual">Mensual</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Hora de ejecución</label>
+          <input type="time" id="prog-hora" value="08:00">
+        </div>
+        <div class="form-group" id="dia-field">
+          <label id="dia-label">Día de ejecución</label>
+          <select id="prog-dia-semanal">
+            <option value="lunes">Lunes</option><option value="martes">Martes</option>
+            <option value="miercoles">Miércoles</option><option value="jueves">Jueves</option>
+            <option value="viernes">Viernes</option><option value="sabado">Sábado</option>
+            <option value="domingo">Domingo</option>
+          </select>
+          <input type="number" id="prog-dia-mensual" placeholder="1–31" min="1" max="31" style="display:none">
+        </div>
+        <div class="form-group full">
+          <label>Destinatarios — Roles (IDs separados por coma)</label>
+          <input type="text" id="prog-roles" placeholder="1, 2, 3">
+        </div>
+        <div class="form-group full">
+          <label>Destinatarios — Usuarios (IDs separados por coma)</label>
+          <input type="text" id="prog-usuarios" placeholder="1, 2">
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-programacion')">Cancelar</button>
+      <button class="btn btn-primary" onclick="crearProgramacion()">Guardar Programación</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Detalle de Reporte -->
+<div class="modal-overlay" id="modal-detalle-reporte">
+  <div class="modal" style="width:640px">
+    <div class="modal-head">
+      <span class="modal-title">Detalle del Reporte</span>
+      <button class="modal-close" onclick="closeModal('modal-detalle-reporte')">✕</button>
+    </div>
+    <div class="modal-body" id="detalle-reporte-body">Cargando…</div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-detalle-reporte')">Cerrar</button>
+      <button class="btn btn-primary" id="btn-descargar-reporte" onclick="descargarReporte()" style="display:none">↓ Descargar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div id="toast-container"></div>
+
+<script src="/app.js"></script>
+</body>
+</html>

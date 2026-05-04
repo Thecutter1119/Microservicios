@@ -1,0 +1,218 @@
+{
+  "info": {
+    "_postman_id": "b0d8f15e-8d61-4b0a-9f0f-6a9c0f6f2c01",
+    "name": "ms-pedidos (PED) - Colección",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url_pedidos", "value": "http://127.0.0.1:8011" },
+    { "key": "user_token", "value": "test" },
+    { "key": "dom_app_token", "value": "dom-local-token" },
+    { "key": "pedido_id", "value": "1" },
+    { "key": "item_id", "value": "1" },
+    { "key": "proveedor_id", "value": "1" },
+    { "key": "activo_id", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url_pedidos}}/health"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Pedidos",
+      "item": [
+        {
+          "name": "Crear Pedido (Usuario)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{user_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"proveedor_id\": {{proveedor_id}},\n  \"observaciones\": \"Pedido creado desde Postman\"\n}"
+            },
+            "url": "{{base_url_pedidos}}/api/v1/pedidos"
+          }
+        },
+        {
+          "name": "Listar Pedidos (Usuario)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{user_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url_pedidos}}/api/v1/pedidos?skip=0&limit=50",
+              "host": ["{{base_url_pedidos}}"],
+              "path": ["api", "v1", "pedidos"],
+              "query": [
+                { "key": "skip", "value": "0" },
+                { "key": "limit", "value": "50" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Consultar Pedido (Usuario)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{user_token}}" }
+            ],
+            "url": "{{base_url_pedidos}}/api/v1/pedidos/{{pedido_id}}"
+          }
+        },
+        {
+          "name": "Consultar Pedido (S2S - ms-domicilios)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-App-Token", "value": "{{dom_app_token}}" }
+            ],
+            "url": "{{base_url_pedidos}}/api/v1/pedidos/{{pedido_id}}"
+          }
+        },
+        {
+          "name": "Actualizar Pedido (Usuario)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{user_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"observaciones\": \"Actualización desde Postman\"\n}"
+            },
+            "url": "{{base_url_pedidos}}/api/v1/pedidos/{{pedido_id}}"
+          }
+        },
+        {
+          "name": "Avanzar Estado (Usuario)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{user_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"comentario\": \"Avance de estado desde Postman\"\n}"
+            },
+            "url": "{{base_url_pedidos}}/api/v1/pedidos/{{pedido_id}}/avanzar-estado"
+          }
+        },
+        {
+          "name": "Cancelar Pedido (Usuario)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{user_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"motivo\": \"Cancelación desde Postman\"\n}"
+            },
+            "url": "{{base_url_pedidos}}/api/v1/pedidos/{{pedido_id}}/cancelar"
+          }
+        },
+        {
+          "name": "Historial de Estados (Usuario)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{user_token}}" }
+            ],
+            "url": "{{base_url_pedidos}}/api/v1/pedidos/{{pedido_id}}/historial"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Ítems",
+      "item": [
+        {
+          "name": "Agregar Ítem (Usuario)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{user_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"activo_id\": {{activo_id}},\n  \"descripcion\": \"Item demo\",\n  \"cantidad_solicitada\": 2,\n  \"valor_unitario\": 5000\n}"
+            },
+            "url": "{{base_url_pedidos}}/api/v1/pedidos/{{pedido_id}}/items"
+          }
+        },
+        {
+          "name": "Listar Ítems (Usuario)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{user_token}}" }
+            ],
+            "url": "{{base_url_pedidos}}/api/v1/pedidos/{{pedido_id}}/items"
+          }
+        },
+        {
+          "name": "Actualizar Ítem (Usuario)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{user_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"descripcion\": \"Item actualizado\"\n}"
+            },
+            "url": "{{base_url_pedidos}}/api/v1/pedidos/{{pedido_id}}/items/{{item_id}}"
+          }
+        },
+        {
+          "name": "Eliminar Ítem (Usuario)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{user_token}}" }
+            ],
+            "url": "{{base_url_pedidos}}/api/v1/pedidos/{{pedido_id}}/items/{{item_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Recepciones",
+      "item": [
+        {
+          "name": "Registrar Recepción (Usuario)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{user_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    { \"item_id\": {{item_id}}, \"cantidad_recibida\": 1 }\n  ],\n  \"observaciones\": \"Recepción demo\"\n}"
+            },
+            "url": "{{base_url_pedidos}}/api/v1/pedidos/{{pedido_id}}/recepciones"
+          }
+        }
+      ]
+    }
+  ]
+}

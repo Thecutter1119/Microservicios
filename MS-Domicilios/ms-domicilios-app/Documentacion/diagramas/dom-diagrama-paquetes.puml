@@ -1,0 +1,232 @@
+@startuml dom-diagrama-paquetes
+title Diagrama de Paquetes — ms-domicilios [DOM]\nMódulo 4 · Logística y Proveedores · FastAPI + Python + PostgreSQL
+
+skinparam packageStyle rectangle
+skinparam packageFontSize 13
+skinparam packageFontStyle bold
+skinparam ArrowColor #37474F
+skinparam ArrowThickness 1.5
+skinparam NoteBackgroundColor #FFF9C4
+skinparam NoteBorderColor #F9A825
+skinparam linetype ortho
+
+' ══════════════════════════════════════════════════════
+'  MICROSERVICIO PRINCIPAL
+' ══════════════════════════════════════════════════════
+
+package "ms-domicilios [DOM]" as DOM #E3F2FD {
+
+  ' ─── Capa: API / Presentación ─────────────────────
+  package "api" as PKG_API #BBDEFB {
+
+    package "routers" as PKG_ROUTERS #90CAF9 {
+      [repartidores_router\n(POST, GET, PUT, PATCH)]
+      [entregas_router\n(POST, GET, PUT, PATCH)]
+      [seguimiento_router\n(POST, GET — anidado)]
+      [calificaciones_router\n(POST — anidado)]
+    }
+
+    package "schemas" as PKG_SCHEMAS #90CAF9 {
+      package "repartidores" as SCH_REP {
+        [RepartidorCreateRequest]
+        [RepartidorResponse]
+        [CambiarEstadoRequest]
+      }
+      package "entregas" as SCH_ENT {
+        [EntregaCreateRequest]
+        [EntregaResponse]
+        [AsignarRepartidorRequest]
+        [ActualizarEstadoRequest]
+      }
+      package "seguimiento" as SCH_SEG {
+        [SeguimientoCreateRequest]
+        [SeguimientoResponse]
+      }
+      package "calificaciones" as SCH_CAL {
+        [CalificacionCreateRequest]
+        [CalificacionResponse]
+      }
+      package "shared" as SCH_SHARED {
+        [StandardResponse\n(request_id, success,\ndata, message, timestamp)]
+      }
+    }
+
+    package "middleware" as PKG_MID #90CAF9 {
+      [AuthMiddleware\n(valida sesión AUTH)]
+      [PermisosMiddleware\n(verifica rol en ROL)]
+      [RequestIDMiddleware\n(genera/propaga\nDOM-{timestamp}-{shortid})]
+      [AuditoriaMiddleware\n(fire-and-forget\nhacia AUD)]
+    }
+
+  }
+
+  ' ─── Capa: Dominio / Lógica de Negocio ───────────
+  package "domain" as PKG_DOMAIN #C8E6C9 {
+
+    package "entities" as PKG_ENTITIES {
+      [Repartidor]
+      [Entrega]
+      [PuntoSeguimiento]
+      [Calificacion]
+      [TarifaEnvio]
+    }
+
+    package "enums" as PKG_ENUMS {
+      [EstadoRepartidor\n(DISPONIBLE, EN_RUTA, INACTIVO)]
+      [EstadoEntrega\n(ASIGNADA, EN_CAMINO,\nENTREGADA, FALLIDA, DEVUELTA)]
+      [TipoTarifa\n(FIJA, POR_DISTANCIA)]
+    }
+
+    package "services" as PKG_SERVICES {
+      [RepartidorService\n(crear, consultar, actualizar,\nlistar_disponibles, cambiar_estado)]
+      [EntregaService\n(crear, asignar_repartidor,\nactualizar_estado, listar_filtros)]
+      [SeguimientoService\n(registrar_punto,\nregistrar_automático, historial)]
+      [CalificacionService\n(registrar, actualizar_promedio)]
+      [TarifaService\n(calcular_costo_envio)]
+    }
+
+    package "rules" as PKG_RULES {
+      [AsignacionValidator\n(disponibilidad +\nzona cobertura)]
+      [CalificacionValidator\n(estado=ENTREGADA,\n1 por entrega)]
+      [EstadoTransitionValidator\n(máquina de estados\nde la entrega)]
+    }
+
+  }
+
+  ' ─── Capa: Infraestructura / Persistencia ─────────
+  package "infrastructure" as PKG_INFRA #EDE7F6 {
+
+    package "repositories" as PKG_REPOS {
+      [RepartidorRepository]
+      [EntregaRepository]
+      [SeguimientoRepository]
+      [CalificacionRepository]
+      [TarifaRepository]
+    }
+
+    package "database" as PKG_DB {
+      [DatabaseSession\n(AsyncSession SQLAlchemy)]
+      [ORM Models\n(Base → dom_*)]
+    }
+
+    package "http_clients" as PKG_CLIENTS #FFCDD2 {
+      [AuthClient\nPOST /sesiones/validar\nSync · 3s timeout · CRÍTICO]
+      [RolesClient\nGET /permisos/verificar\nSync · 2s timeout · CRÍTICO]
+      [PedidosClient\nGET /pedidos/{id}\nSync · 5s timeout · CRÍTICO]
+      [NotificacionesClient\nPOST /notificaciones\nSync · Tolerante a fallos]
+      [AuditoriaClient\nPOST /logs\nAsync · Fire-and-forget]
+    }
+
+    package "config" as PKG_CONFIG {
+      [Settings\n(env vars, tokens AES-256,\nDB url, URLs servicios)]
+      [AppTokenManager\n(almacena / descifra\napp tokens)]
+    }
+
+  }
+
+}
+
+' ══════════════════════════════════════════════════════
+'  MICROSERVICIOS EXTERNOS
+' ══════════════════════════════════════════════════════
+
+package "ms-autenticacion [AUTH]" as AUTH #FFEBEE {
+  [POST /api/v1/sesiones/validar]
+}
+
+package "ms-roles [ROL]" as ROL #FFEBEE {
+  [GET /api/v1/permisos/verificar]
+}
+
+package "ms-pedidos [PED]" as PED #E8F5E9 {
+  [GET /api/v1/pedidos/{id}]
+}
+
+package "ms-notificaciones [NOT]" as NOT #E8F5E9 {
+  [POST /api/v1/notificaciones]
+}
+
+package "ms-auditoria [AUD]" as AUD #FFF8E1 {
+  [POST /api/v1/logs]
+}
+
+package "PostgreSQL · db_domicilios" as DB #F3E5F5 {
+  [dom_repartidores]
+  [dom_entregas]
+  [dom_seguimiento]
+  [dom_calificaciones]
+  [dom_tarifas_envio]
+}
+
+' ══════════════════════════════════════════════════════
+'  DEPENDENCIAS INTERNAS
+' ══════════════════════════════════════════════════════
+
+PKG_ROUTERS ..> PKG_SCHEMAS : usa
+PKG_ROUTERS ..> PKG_SERVICES : invoca
+PKG_ROUTERS ..> PKG_MID : filtrado por
+
+PKG_SERVICES ..> PKG_ENTITIES : opera sobre
+PKG_SERVICES ..> PKG_ENUMS : referencia
+PKG_SERVICES ..> PKG_RULES : delega validaciones
+PKG_SERVICES ..> PKG_REPOS : persiste/consulta
+PKG_SERVICES ..> PKG_CLIENTS : llama servicios ext
+
+PKG_REPOS ..> PKG_DB : accede a
+
+PKG_MID ..> PKG_CLIENTS : usa Auth/Roles/Auditoria
+PKG_MID ..> PKG_CONFIG : lee configuración
+
+PKG_DB ..> PKG_CONFIG : configurado por
+
+' ══════════════════════════════════════════════════════
+'  DEPENDENCIAS EXTERNAS
+' ══════════════════════════════════════════════════════
+
+PKG_CLIENTS ..> AUTH : [SYNC] valida sesión
+PKG_CLIENTS ..> ROL  : [SYNC] verifica permiso
+PKG_CLIENTS ..> PED  : [SYNC] obtiene pedido
+PKG_CLIENTS ..> NOT  : [SYNC · tolerante] notifica
+PKG_CLIENTS ..> AUD  : [ASYNC fire-and-forget] log
+
+PKG_REPOS ..> DB : SQL / SQLAlchemy ORM
+
+' ══════════════════════════════════════════════════════
+'  LEYENDA / NOTAS
+' ══════════════════════════════════════════════════════
+
+note as LEGEND
+  <b>Leyenda de capas</b>
+  |= Color |= Capa |
+  | <back:#BBDEFB>Azul claro</back>  | API (Presentación) |
+  | <back:#C8E6C9>Verde claro</back> | Domain (Lógica de Negocio) |
+  | <back:#EDE7F6>Lila claro</back>  | Infrastructure (Persistencia) |
+  | <back:#FFCDD2>Rojo claro</back>  | HTTP Clients (Integraciones) |
+  | <back:#FFEBEE>Rojo ext.</back>   | Servicios críticos externos |
+  | <back:#E8F5E9>Verde ext.</back>  | Servicios opcionales externos |
+  | <back:#FFF8E1>Amarillo</back>    | Auditoría (async) |
+  | <back:#F3E5F5>Morado</back>      | Base de datos (PostgreSQL) |
+end note
+
+note bottom of PED
+  Dependencia crítica al crear entrega.
+  Si no responde → HTTP 503.
+  Almacena solo pedido_id como ref. externa.
+end note
+
+note bottom of AUD
+  Fire-and-forget asíncrono.
+  Si falla, DOM continúa operando.
+  Log incluye: request_id, operación,
+  usuario_id, duración ms, código HTTP.
+end note
+
+note right of DOM
+  Base URL: /api/v1
+  Total endpoints: 15
+  Autenticación: Bearer JWT (todas las rutas)
+  Request ID: DOM-{timestamp}-{shortid}
+  Tecnología: FastAPI · Python · PostgreSQL
+end note
+
+@enduml

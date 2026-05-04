@@ -1,0 +1,696 @@
+version: '3.9'
+
+services:
+  db-ms-autenticacion:
+    image: postgres:16-alpine
+    container_name: db-ms-autenticacion
+    environment:
+      POSTGRES_DB: db_autenticacion
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d db_autenticacion"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - db-ms-autenticacion-data:/var/lib/postgresql/data
+    networks:
+      - erp-net
+
+  ms-autenticacion:
+    container_name: ms-autenticacion
+    build:
+      context: "./ms-autenticacion"
+    depends_on:
+      db-ms-autenticacion:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: "postgresql+psycopg://postgres:postgres@db-ms-autenticacion:5432/db_autenticacion"
+      USR_BASE_URL: "http://ms-usuarios:8000"
+      ROL_BASE_URL: "http://ms-roles:8000"
+    ports:
+      - "8101:8000"
+    command: >
+      uvicorn app.main:app --host 0.0.0.0 --port 8000
+    restart: unless-stopped
+    networks:
+      - erp-net
+
+  db-ms-roles:
+    image: postgres:16-alpine
+    container_name: db-ms-roles
+    environment:
+      POSTGRES_DB: db_roles
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d db_roles"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - db-ms-roles-data:/var/lib/postgresql/data
+    networks:
+      - erp-net
+
+  ms-roles:
+    container_name: ms-roles
+    build:
+      context: "./ms-roles"
+    depends_on:
+      db-ms-roles:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: "postgresql+psycopg://postgres:postgres@db-ms-roles:5432/db_roles"
+    ports:
+      - "8102:8000"
+    command: >
+      uvicorn app.main:app --host 0.0.0.0 --port 8000
+    restart: unless-stopped
+    networks:
+      - erp-net
+
+  db-ms-usuarios:
+    image: postgres:16-alpine
+    container_name: db-ms-usuarios
+    environment:
+      POSTGRES_DB: db_usuarios
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d db_usuarios"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - db-ms-usuarios-data:/var/lib/postgresql/data
+    networks:
+      - erp-net
+
+  ms-usuarios:
+    container_name: ms-usuarios
+    build:
+      context: "./ms-usuarios"
+    depends_on:
+      db-ms-usuarios:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: "postgresql+psycopg://postgres:postgres@db-ms-usuarios:5432/db_usuarios"
+      ROL_BASE_URL: "http://ms-roles:8000"
+    ports:
+      - "8103:8000"
+    command: >
+      uvicorn app.main:app --host 0.0.0.0 --port 8000
+    restart: unless-stopped
+    networks:
+      - erp-net
+
+  db-ms-inventario:
+    image: postgres:16-alpine
+    container_name: db-ms-inventario
+    environment:
+      POSTGRES_DB: db_inventario
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d db_inventario"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - db-ms-inventario-data:/var/lib/postgresql/data
+    networks:
+      - erp-net
+
+  ms-inventario:
+    container_name: ms-inventario
+    build:
+      context: "./ms-inventario"
+    depends_on:
+      db-ms-inventario:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: "postgresql+psycopg://postgres:postgres@db-ms-inventario:5432/db_inventario"
+    ports:
+      - "8104:8000"
+    command: >
+      uvicorn app.main:app --host 0.0.0.0 --port 8000
+    restart: unless-stopped
+    networks:
+      - erp-net
+
+  db-ms-espacios:
+    image: postgres:16-alpine
+    container_name: db-ms-espacios
+    environment:
+      POSTGRES_DB: db_espacios
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d db_espacios"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - db-ms-espacios-data:/var/lib/postgresql/data
+    networks:
+      - erp-net
+
+  ms-espacios:
+    container_name: ms-espacios
+    build:
+      context: "./ms-espacios"
+    depends_on:
+      db-ms-espacios:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: "postgresql+psycopg://postgres:postgres@db-ms-espacios:5432/db_espacios"
+      INV_BASE_URL: "http://ms-inventario:8000"
+    ports:
+      - "8105:8000"
+    command: >
+      uvicorn app.main:app --host 0.0.0.0 --port 8000
+    restart: unless-stopped
+    networks:
+      - erp-net
+
+  db-ms-reservas:
+    image: postgres:16-alpine
+    container_name: db-ms-reservas
+    environment:
+      POSTGRES_DB: db_reservas
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d db_reservas"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - db-ms-reservas-data:/var/lib/postgresql/data
+    networks:
+      - erp-net
+
+  ms-reservas:
+    container_name: ms-reservas
+    build:
+      context: "./ms-reservas"
+    depends_on:
+      db-ms-reservas:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: "postgresql+psycopg://postgres:postgres@db-ms-reservas:5432/db_reservas"
+      ESP_BASE_URL: "http://ms-espacios:8000"
+      HOR_BASE_URL: "http://ms-horarios:8000"
+    ports:
+      - "8106:8000"
+    command: >
+      uvicorn app.main:app --host 0.0.0.0 --port 8000
+    restart: unless-stopped
+    networks:
+      - erp-net
+
+  db-ms-presupuesto:
+    image: postgres:16-alpine
+    container_name: db-ms-presupuesto
+    environment:
+      POSTGRES_DB: db_presupuesto
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d db_presupuesto"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - db-ms-presupuesto-data:/var/lib/postgresql/data
+    networks:
+      - erp-net
+
+  ms-presupuesto:
+    container_name: ms-presupuesto
+    build:
+      context: "./ms-presupuesto"
+    depends_on:
+      db-ms-presupuesto:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: "postgresql+psycopg://postgres:postgres@db-ms-presupuesto:5432/db_presupuesto"
+    ports:
+      - "8107:8000"
+    command: >
+      uvicorn app.main:app --host 0.0.0.0 --port 8000
+    restart: unless-stopped
+    networks:
+      - erp-net
+
+  db-ms-gastos:
+    image: postgres:16-alpine
+    container_name: db-ms-gastos
+    environment:
+      POSTGRES_DB: db_gastos
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d db_gastos"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - db-ms-gastos-data:/var/lib/postgresql/data
+    networks:
+      - erp-net
+
+  ms-gastos:
+    container_name: ms-gastos
+    build:
+      context: "./ms-gastos"
+    depends_on:
+      db-ms-gastos:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: "postgresql+psycopg://postgres:postgres@db-ms-gastos:5432/db_gastos"
+      PRE_BASE_URL: "http://ms-presupuesto:8000"
+    ports:
+      - "8108:8000"
+    command: >
+      uvicorn app.main:app --host 0.0.0.0 --port 8000
+    restart: unless-stopped
+    networks:
+      - erp-net
+
+  db-ms-facturacion:
+    image: postgres:16-alpine
+    container_name: db-ms-facturacion
+    environment:
+      POSTGRES_DB: db_facturacion
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d db_facturacion"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - db-ms-facturacion-data:/var/lib/postgresql/data
+    networks:
+      - erp-net
+
+  ms-facturacion:
+    container_name: ms-facturacion
+    build:
+      context: "./ms-facturacion"
+    depends_on:
+      db-ms-facturacion:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: "postgresql+psycopg://postgres:postgres@db-ms-facturacion:5432/db_facturacion"
+    ports:
+      - "8109:8000"
+    command: >
+      uvicorn app.main:app --host 0.0.0.0 --port 8000
+    restart: unless-stopped
+    networks:
+      - erp-net
+
+  db-ms-pedidos:
+    image: postgres:16-alpine
+    container_name: db-ms-pedidos
+    environment:
+      POSTGRES_DB: db_pedidos
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d db_pedidos"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - db-ms-pedidos-data:/var/lib/postgresql/data
+    networks:
+      - erp-net
+
+  ms-pedidos:
+    container_name: ms-pedidos
+    build:
+      context: "./Ms Pedidos"
+    depends_on:
+      db-ms-pedidos:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: "postgresql+psycopg://user:password@db-ms-pedidos:5432/db_pedidos"
+      AUTH_BASE_URL: "http://ms-autenticacion:8000"
+      ROL_BASE_URL: "http://ms-roles:8000"
+      PRV_BASE_URL: "http://ms-proveedores:8000"
+      INV_BASE_URL: "http://ms-inventario:8000"
+      AUD_BASE_URL: "http://ms-auditoria:8000"
+    ports:
+      - "8110:8000"
+    command: >
+      uvicorn app.main:app --host 0.0.0.0 --port 8000
+    restart: unless-stopped
+    networks:
+      - erp-net
+
+  db-ms-domicilios:
+    image: postgres:16-alpine
+    container_name: db-ms-domicilios
+    environment:
+      POSTGRES_DB: ms_domicilios
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ms_domicilios"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - db-ms-domicilios-data:/var/lib/postgresql/data
+    networks:
+      - erp-net
+
+  ms-domicilios:
+    container_name: ms-domicilios
+    build:
+      context: "./MS-Domicilios/ms-domicilios-app"
+    depends_on:
+      db-ms-domicilios:
+        condition: service_healthy
+    environment:
+      database_url: "postgresql+psycopg://postgres:postgres@db-ms-domicilios:5432/ms_domicilios"
+      ped_base_url: "http://ms-pedidos:8000"
+    ports:
+      - "8111:8000"
+    command: >
+      uvicorn app.main:app --host 0.0.0.0 --port 8000
+    restart: unless-stopped
+    networks:
+      - erp-net
+
+  db-ms-proveedores:
+    image: postgres:16-alpine
+    container_name: db-ms-proveedores
+    environment:
+      POSTGRES_DB: ms_proveedores
+      POSTGRES_USER: proveedor_user
+      POSTGRES_PASSWORD: proveedor_pass
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U proveedor_user -d ms_proveedores"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - db-ms-proveedores-data:/var/lib/postgresql/data
+    networks:
+      - erp-net
+
+  ms-proveedores:
+    container_name: ms-proveedores
+    build:
+      context: "./ms-proveedores"
+    depends_on:
+      db-ms-proveedores:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: "postgresql://proveedor_user:proveedor_pass@db-ms-proveedores:5432/ms_proveedores"
+    ports:
+      - "8112:8000"
+    command: >
+      uvicorn main:app --host 0.0.0.0 --port 8000
+    restart: unless-stopped
+    networks:
+      - erp-net
+
+  db-ms-programas:
+    image: postgres:16-alpine
+    container_name: db-ms-programas
+    environment:
+      POSTGRES_DB: db_programas
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d db_programas"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - db-ms-programas-data:/var/lib/postgresql/data
+    networks:
+      - erp-net
+
+  ms-programas:
+    container_name: ms-programas
+    build:
+      context: "./ms-programas"
+    depends_on:
+      db-ms-programas:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: "postgresql+psycopg://postgres:postgres@db-ms-programas:5432/db_programas"
+    ports:
+      - "8113:8000"
+    command: >
+      uvicorn app.main:app --host 0.0.0.0 --port 8000
+    restart: unless-stopped
+    networks:
+      - erp-net
+
+  db-ms-matriculas:
+    image: postgres:16-alpine
+    container_name: db-ms-matriculas
+    environment:
+      POSTGRES_DB: db_matriculas
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d db_matriculas"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - db-ms-matriculas-data:/var/lib/postgresql/data
+    networks:
+      - erp-net
+
+  ms-matriculas:
+    container_name: ms-matriculas
+    build:
+      context: "./ms-matriculas"
+    depends_on:
+      db-ms-matriculas:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: "postgresql+psycopg://postgres:postgres@db-ms-matriculas:5432/db_matriculas"
+      PRG_BASE_URL: "http://ms-programas:8000"
+      HOR_BASE_URL: "http://ms-horarios:8000"
+    ports:
+      - "8114:8000"
+    command: >
+      uvicorn app.main:app --host 0.0.0.0 --port 8000
+    restart: unless-stopped
+    networks:
+      - erp-net
+
+  db-ms-calificaciones:
+    image: postgres:16-alpine
+    container_name: db-ms-calificaciones
+    environment:
+      POSTGRES_DB: db_calificaciones
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d db_calificaciones"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - db-ms-calificaciones-data:/var/lib/postgresql/data
+    networks:
+      - erp-net
+
+  ms-calificaciones:
+    container_name: ms-calificaciones
+    build:
+      context: "./ms-calificaciones"
+    depends_on:
+      db-ms-calificaciones:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: "postgresql+psycopg://postgres:postgres@db-ms-calificaciones:5432/db_calificaciones"
+      MAT_BASE_URL: "http://ms-matriculas:8000"
+    ports:
+      - "8115:8000"
+    command: >
+      uvicorn app.main:app --host 0.0.0.0 --port 8000
+    restart: unless-stopped
+    networks:
+      - erp-net
+
+  db-ms-horarios:
+    image: postgres:16-alpine
+    container_name: db-ms-horarios
+    environment:
+      POSTGRES_DB: db_horarios
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d db_horarios"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - db-ms-horarios-data:/var/lib/postgresql/data
+    networks:
+      - erp-net
+
+  ms-horarios:
+    container_name: ms-horarios
+    build:
+      context: "./ms-horarios"
+    depends_on:
+      db-ms-horarios:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: "postgresql+psycopg://postgres:postgres@db-ms-horarios:5432/db_horarios"
+    ports:
+      - "8116:8000"
+    command: >
+      uvicorn app.main:app --host 0.0.0.0 --port 8000
+    restart: unless-stopped
+    networks:
+      - erp-net
+
+  db-ms-notificaciones:
+    image: postgres:16-alpine
+    container_name: db-ms-notificaciones
+    environment:
+      POSTGRES_DB: db_notificaciones
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d db_notificaciones"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - db-ms-notificaciones-data:/var/lib/postgresql/data
+    networks:
+      - erp-net
+
+  ms-notificaciones:
+    container_name: ms-notificaciones
+    build:
+      context: "./ms-notificaciones"
+    depends_on:
+      db-ms-notificaciones:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: "postgresql+psycopg://postgres:postgres@db-ms-notificaciones:5432/db_notificaciones"
+    ports:
+      - "8117:8000"
+    command: >
+      uvicorn app.main:app --host 0.0.0.0 --port 8000
+    restart: unless-stopped
+    networks:
+      - erp-net
+
+  db-ms-auditoria:
+    image: postgres:16-alpine
+    container_name: db-ms-auditoria
+    environment:
+      POSTGRES_DB: db_auditoria
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d db_auditoria"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - db-ms-auditoria-data:/var/lib/postgresql/data
+    networks:
+      - erp-net
+
+  ms-auditoria:
+    container_name: ms-auditoria
+    build:
+      context: "./ms-auditoria"
+    depends_on:
+      db-ms-auditoria:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: "postgresql+psycopg://postgres:postgres@db-ms-auditoria:5432/db_auditoria"
+    ports:
+      - "8118:8000"
+    command: >
+      uvicorn app.main:app --host 0.0.0.0 --port 8000
+    restart: unless-stopped
+    networks:
+      - erp-net
+
+  db-ms-reportes:
+    image: postgres:16-alpine
+    container_name: db-ms-reportes
+    environment:
+      POSTGRES_DB: db_reportes
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d db_reportes"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - db-ms-reportes-data:/var/lib/postgresql/data
+    networks:
+      - erp-net
+
+  ms-reportes:
+    container_name: ms-reportes
+    build:
+      context: "./reportes_service"
+    depends_on:
+      db-ms-reportes:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: "postgresql+asyncpg://postgres:postgres@db-ms-reportes:5432/db_reportes"
+      DATABASE_URL_SYNC: "postgresql://postgres:postgres@db-ms-reportes:5432/db_reportes"
+      MS_AUTENTICACION_URL: "http://ms-autenticacion:8000"
+      MS_ROLES_URL: "http://ms-roles:8000"
+      MS_CALIFICACIONES_URL: "http://ms-calificaciones:8000"
+      MS_INVENTARIO_URL: "http://ms-inventario:8000"
+      MS_PRESUPUESTO_URL: "http://ms-presupuesto:8000"
+      MS_AUDITORIA_URL: "http://ms-auditoria:8000"
+    ports:
+      - "8119:8000"
+    command: >
+      uvicorn app.main:app --host 0.0.0.0 --port 8000
+    restart: unless-stopped
+    networks:
+      - erp-net
+
+networks:
+  erp-net:
+    driver: bridge
+
+volumes:
+  db-ms-autenticacion-data:
+  db-ms-roles-data:
+  db-ms-usuarios-data:
+  db-ms-inventario-data:
+  db-ms-espacios-data:
+  db-ms-reservas-data:
+  db-ms-presupuesto-data:
+  db-ms-gastos-data:
+  db-ms-facturacion-data:
+  db-ms-pedidos-data:
+  db-ms-domicilios-data:
+  db-ms-proveedores-data:
+  db-ms-programas-data:
+  db-ms-matriculas-data:
+  db-ms-calificaciones-data:
+  db-ms-horarios-data:
+  db-ms-notificaciones-data:
+  db-ms-auditoria-data:
+  db-ms-reportes-data:
