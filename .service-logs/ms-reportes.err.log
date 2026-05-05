@@ -1,81 +1,136 @@
+INFO:     Started server process [6252]
+INFO:     Waiting for application startup.
+2026-05-04 18:53:18,870 | INFO     | ms-reportes | \u2550\u2550\u2550 ms-reportes [REP] iniciando \u2550\u2550\u2550
+2026-05-04 18:53:18,871 | INFO     | ms-reportes | Versión: 1.0.0 | Módulo: Módulo 6 — Transversales
+ERROR:    Traceback (most recent call last):
+  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\asyncio\windows_events.py", line 463, in finish_socket_func
+    return ov.getresult()
+           ~~~~~~~~~~~~^^
+OSError: [WinError 64] El nombre de red especificado ya no está disponible
+
+During handling of the above exception, another exception occurred:
+
 Traceback (most recent call last):
-  File "<frozen runpy>", line 198, in _run_module_as_main
-  File "<frozen runpy>", line 88, in _run_code
-  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\uvicorn\__main__.py", line 4, in <module>
-    uvicorn.main()
-    ~~~~~~~~~~~~^^
-  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\click\core.py", line 1485, in __call__
-    return self.main(*args, **kwargs)
-           ~~~~~~~~~^^^^^^^^^^^^^^^^^
-  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\click\core.py", line 1406, in main
-    rv = self.invoke(ctx)
-  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\click\core.py", line 1269, in invoke
-    return ctx.invoke(self.callback, **ctx.params)
-           ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\click\core.py", line 824, in invoke
-    return callback(*args, **kwargs)
-  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\uvicorn\main.py", line 410, in main
-    run(
-    ~~~^
-        app,
-        ^^^^
-    ...<45 lines>...
-        h11_max_incomplete_event_size=h11_max_incomplete_event_size,
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\asyncio\proactor_events.py", line 286, in _loop_reading
+    length = fut.result()
+  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\asyncio\windows_events.py", line 804, in _poll
+    value = callback(transferred, key, ov)
+  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\asyncio\windows_events.py", line 467, in finish_socket_func
+    raise ConnectionResetError(*exc.args)
+ConnectionResetError: [WinError 64] El nombre de red especificado ya no está disponible
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\routing.py", line 693, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+               ~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 214, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\fastapi\routing.py", line 133, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+               ~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 214, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\fastapi\routing.py", line 133, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+               ~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 214, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\fastapi\routing.py", line 133, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+               ~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 214, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jhons\Downloads\Microservicios\reportes_service\app\main.py", line 44, in lifespan
+    async with engine.begin() as conn:
+               ~~~~~~~~~~~~^^
+  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 214, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\ext\asyncio\engine.py", line 1063, in begin
+    async with conn:
+               ^^^^
+  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\ext\asyncio\base.py", line 121, in __aenter__
+    return await self.start(is_ctxmanager=True)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\ext\asyncio\engine.py", line 273, in start
+    await greenlet_spawn(self.sync_engine.connect)
+  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 201, in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\engine\base.py", line 3278, in connect
+    return self._connection_cls(self)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\engine\base.py", line 146, in __init__
+    self._dbapi_connection = engine.raw_connection()
+                             ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\engine\base.py", line 3302, in raw_connection
+    return self.pool.connect()
+           ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\pool\base.py", line 449, in connect
+    return _ConnectionFairy._checkout(self)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\pool\base.py", line 1263, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\pool\base.py", line 712, in checkout
+    rec = pool._do_get()
+  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\pool\impl.py", line 179, in _do_get
+    with util.safe_reraise():
+         ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\pool\impl.py", line 177, in _do_get
+    return self._create_connection()
+           ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\pool\base.py", line 390, in _create_connection
+    return _ConnectionRecord(self)
+  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\pool\base.py", line 674, in __init__
+    self.__connect()
+    ~~~~~~~~~~~~~~^^
+  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\pool\base.py", line 900, in __connect
+    with util.safe_reraise():
+         ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\pool\base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\engine\create.py", line 643, in connect
+    return dialect.connect(*cargs, **cparams)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\engine\default.py", line 621, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 949, in connect
+    await_only(creator_fn(*arg, **kw)),
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\asyncpg\connection.py", line 2421, in connect
+    return await connect_utils._connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<20 lines>...
     )
     ^
-  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\uvicorn\main.py", line 577, in run
-    server.run()
-    ~~~~~~~~~~^^
-  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\uvicorn\server.py", line 65, in run
-    return asyncio.run(self.serve(sockets=sockets))
-           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\asyncio\runners.py", line 195, in run
-    return runner.run(main)
-           ~~~~~~~~~~^^^^^^
-  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\asyncio\runners.py", line 118, in run
-    return self._loop.run_until_complete(task)
-           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
-  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\asyncio\base_events.py", line 725, in run_until_complete
-    return future.result()
-           ~~~~~~~~~~~~~^^
-  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\uvicorn\server.py", line 69, in serve
-    await self._serve(sockets)
-  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\uvicorn\server.py", line 76, in _serve
-    config.load()
-    ~~~~~~~~~~~^^
-  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\uvicorn\config.py", line 434, in load
-    self.loaded_app = import_from_string(self.app)
-                      ~~~~~~~~~~~~~~~~~~^^^^^^^^^^
-  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\uvicorn\importer.py", line 22, in import_from_string
-    raise exc from None
-  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\uvicorn\importer.py", line 19, in import_from_string
-    module = importlib.import_module(module_str)
-  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\importlib\__init__.py", line 88, in import_module
-    return _bootstrap._gcd_import(name[level:], package, level)
-           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
-  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
-  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
-  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
-  File "<frozen importlib._bootstrap_external>", line 1026, in exec_module
-  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
-  File "C:\Users\jhons\Downloads\Microservicios\reportes_service\app\main.py", line 17, in <module>
-    from app.db.database import engine
-  File "C:\Users\jhons\Downloads\Microservicios\reportes_service\app\db\database.py", line 9, in <module>
-    engine = create_async_engine(
-        settings.DATABASE_URL,
-    ...<3 lines>...
-        max_overflow=20,
+  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\asyncpg\connect_utils.py", line 1049, in _connect
+    conn = await _connect_addr(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
     )
-  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\ext\asyncio\engine.py", line 120, in create_async_engine
-    sync_engine = _create_engine(url, **kw)
-  File "<string>", line 2, in create_engine
-  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\util\deprecations.py", line 281, in warned
-    return fn(*args, **kwargs)  # type: ignore[no-any-return]
-  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\engine\create.py", line 599, in create_engine
-    dbapi = dbapi_meth(**dbapi_args)
-  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 1087, in import_dbapi
-    return AsyncAdapt_asyncpg_dbapi(__import__("asyncpg"))
-                                    ~~~~~~~~~~^^^^^^^^^^^
-ModuleNotFoundError: No module named 'asyncpg'
+    ^
+  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\asyncpg\connect_utils.py", line 886, in _connect_addr
+    return await __connect_addr(params, True, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jhons\AppData\Local\Programs\Python\Python313\Lib\site-packages\asyncpg\connect_utils.py", line 934, in __connect_addr
+    await connected
+asyncpg.exceptions.ConnectionDoesNotExistError: connection was closed in the middle of operation
+
+ERROR:    Application startup failed. Exiting.

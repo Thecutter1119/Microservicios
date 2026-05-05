@@ -1,6 +1,8 @@
 param(
     [switch]$InstallDeps = $false,
-    [switch]$DryRun = $false
+    [switch]$DryRun = $false,
+    [ValidateSet("windows", "background")]
+    [string]$Mode = "windows"
 )
 
 $ErrorActionPreference = "Stop"
@@ -67,16 +69,33 @@ foreach ($svc in $services) {
     $stderr = Join-Path $LogDir "$($svc.Name).err.log"
 
     if ($DryRun) {
-        Write-Host "[DRY-RUN] $($svc.Name) -> python $($args -join ' ')  (cwd=$serviceDir)"
+        if ($Mode -eq "windows") {
+            Write-Host "[DRY-RUN] $($svc.Name) -> powershell -NoExit -Command `"Set-Location '$serviceDir'; python $($args -join ' ')`""
+        } else {
+            Write-Host "[DRY-RUN] $($svc.Name) -> python $($args -join ' ')  (cwd=$serviceDir)"
+        }
         continue
     }
 
-    $proc = Start-Process -FilePath "python" `
-        -ArgumentList $args `
-        -WorkingDirectory $serviceDir `
-        -RedirectStandardOutput $stdout `
-        -RedirectStandardError $stderr `
-        -PassThru
+    if ($Mode -eq "windows") {
+        $escapedDir = $serviceDir.Replace("'", "''")
+        $windowCmd = @(
+            "`$Host.UI.RawUI.WindowTitle = '$($svc.Name) : $($svc.Port)'",
+            "Set-Location -LiteralPath '$escapedDir'",
+            "python $($args -join ' ')"
+        ) -join "; "
+
+        $proc = Start-Process -FilePath "powershell" `
+            -ArgumentList @("-NoExit", "-Command", $windowCmd) `
+            -PassThru
+    } else {
+        $proc = Start-Process -FilePath "python" `
+            -ArgumentList $args `
+            -WorkingDirectory $serviceDir `
+            -RedirectStandardOutput $stdout `
+            -RedirectStandardError $stderr `
+            -PassThru
+    }
 
     $running += [pscustomobject]@{
         name = $svc.Name
@@ -94,6 +113,10 @@ if (-not $DryRun) {
     $running | ConvertTo-Json -Depth 3 | Set-Content -Path $PidFile -Encoding UTF8
     Write-Host ""
     Write-Host "Servicios iniciados. Archivo PID: $PidFile"
-    Write-Host "Logs: $LogDir"
+    if ($Mode -eq "background") {
+        Write-Host "Logs: $LogDir"
+    } else {
+        Write-Host "Modo ventanas activo: cada microservicio corre en su propia terminal."
+    }
     Write-Host "Para detener todo: .\stop_all.ps1"
 }

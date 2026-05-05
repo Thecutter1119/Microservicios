@@ -1,0 +1,135 @@
+﻿[
+    {
+        "name":  "ms-roles",
+        "pid":  23980,
+        "port":  8102,
+        "path":  "C:\\Users\\jhons\\Downloads\\Microservicios\\ms-roles",
+        "health":  "http://localhost:8102/health"
+    },
+    {
+        "name":  "ms-usuarios",
+        "pid":  21696,
+        "port":  8103,
+        "path":  "C:\\Users\\jhons\\Downloads\\Microservicios\\ms-usuarios",
+        "health":  "http://localhost:8103/health"
+    },
+    {
+        "name":  "ms-autenticacion",
+        "pid":  23128,
+        "port":  8101,
+        "path":  "C:\\Users\\jhons\\Downloads\\Microservicios\\ms-autenticacion",
+        "health":  "http://localhost:8101/health"
+    },
+    {
+        "name":  "ms-auditoria",
+        "pid":  20088,
+        "port":  8118,
+        "path":  "C:\\Users\\jhons\\Downloads\\Microservicios\\ms-auditoria",
+        "health":  "http://localhost:8118/health"
+    },
+    {
+        "name":  "ms-notificaciones",
+        "pid":  8184,
+        "port":  8117,
+        "path":  "C:\\Users\\jhons\\Downloads\\Microservicios\\ms-notificaciones",
+        "health":  "http://localhost:8117/health"
+    },
+    {
+        "name":  "ms-inventario",
+        "pid":  2684,
+        "port":  8104,
+        "path":  "C:\\Users\\jhons\\Downloads\\Microservicios\\ms-inventario",
+        "health":  "http://localhost:8104/health"
+    },
+    {
+        "name":  "ms-espacios",
+        "pid":  9336,
+        "port":  8105,
+        "path":  "C:\\Users\\jhons\\Downloads\\Microservicios\\ms-espacios",
+        "health":  "http://localhost:8105/health"
+    },
+    {
+        "name":  "ms-reservas",
+        "pid":  21708,
+        "port":  8106,
+        "path":  "C:\\Users\\jhons\\Downloads\\Microservicios\\ms-reservas",
+        "health":  "http://localhost:8106/health"
+    },
+    {
+        "name":  "ms-presupuesto",
+        "pid":  23080,
+        "port":  8107,
+        "path":  "C:\\Users\\jhons\\Downloads\\Microservicios\\ms-presupuesto",
+        "health":  "http://localhost:8107/health"
+    },
+    {
+        "name":  "ms-gastos",
+        "pid":  21924,
+        "port":  8108,
+        "path":  "C:\\Users\\jhons\\Downloads\\Microservicios\\ms-gastos",
+        "health":  "http://localhost:8108/health"
+    },
+    {
+        "name":  "ms-facturacion",
+        "pid":  5540,
+        "port":  8109,
+        "path":  "C:\\Users\\jhons\\Downloads\\Microservicios\\ms-facturacion",
+        "health":  "http://localhost:8109/health"
+    },
+    {
+        "name":  "ms-programas",
+        "pid":  13652,
+        "port":  8113,
+        "path":  "C:\\Users\\jhons\\Downloads\\Microservicios\\ms-programas",
+        "health":  "http://localhost:8113/health"
+    },
+    {
+        "name":  "ms-matriculas",
+        "pid":  9176,
+        "port":  8114,
+        "path":  "C:\\Users\\jhons\\Downloads\\Microservicios\\ms-matriculas",
+        "health":  "http://localhost:8114/health"
+    },
+    {
+        "name":  "ms-calificaciones",
+        "pid":  7784,
+        "port":  8115,
+        "path":  "C:\\Users\\jhons\\Downloads\\Microservicios\\ms-calificaciones",
+        "health":  "http://localhost:8115/health"
+    },
+    {
+        "name":  "ms-horarios",
+        "pid":  21408,
+        "port":  8116,
+        "path":  "C:\\Users\\jhons\\Downloads\\Microservicios\\ms-horarios",
+        "health":  "http://localhost:8116/health"
+    },
+    {
+        "name":  "ms-pedidos",
+        "pid":  20712,
+        "port":  8110,
+        "path":  "C:\\Users\\jhons\\Downloads\\Microservicios\\Ms Pedidos",
+        "health":  "http://localhost:8110/health"
+    },
+    {
+        "name":  "ms-domicilios",
+        "pid":  11892,
+        "port":  8111,
+        "path":  "C:\\Users\\jhons\\Downloads\\Microservicios\\MS-Domicilios\\ms-domicilios-app",
+        "health":  "http://localhost:8111/health"
+    },
+    {
+        "name":  "ms-proveedores",
+        "pid":  23756,
+        "port":  8112,
+        "path":  "C:\\Users\\jhons\\Downloads\\Microservicios\\ms-proveedores",
+        "health":  "http://localhost:8112/health"
+    },
+    {
+        "name":  "ms-reportes",
+        "pid":  22132,
+        "port":  8119,
+        "path":  "C:\\Users\\jhons\\Downloads\\Microservicios\\reportes_service",
+        "health":  "http://localhost:8119/health"
+    }
+]
