@@ -3,7 +3,8 @@ from pydantic import BaseModel
 
 class LoginIn(BaseModel):
     login: str
-    password_encrypted: str
+    password: str | None = None
+    password_encrypted: str | None = None
 
 
 class LogoutIn(BaseModel):

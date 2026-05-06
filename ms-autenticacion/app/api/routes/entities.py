@@ -77,7 +77,17 @@ async def login(payload: LoginIn, request: Request, db: Session = Depends(get_db
     if user_data["estado"] != "activo":
         raise HTTPException(status_code=403, detail="Usuario no activo")
 
-    plain = decrypt_aes_base64(payload.password_encrypted)
+    if payload.password:
+        plain = payload.password
+    elif payload.password_encrypted:
+        try:
+            plain = decrypt_aes_base64(payload.password_encrypted)
+        except Exception as exc:
+            raise HTTPException(status_code=400, detail="Password encrypted invalida") from exc
+    else:
+        raise HTTPException(status_code=400, detail="Debe enviar password o password_encrypted")
+    if len(plain.encode("utf-8")) > 72:
+        raise HTTPException(status_code=400, detail="La password no puede superar 72 bytes para bcrypt")
     ok = verify_password(plain, user_data["password_hash"])
     if not ok:
         if not tracker:

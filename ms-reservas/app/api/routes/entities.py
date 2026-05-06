@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -12,6 +12,13 @@ from app.models.entities import BloqueoEspacio, PoliticaReserva, Reserva
 from app.schemas.entities import BloqueoIn, CancelReservaIn, PoliticaIn, ReservaIn, ReservaOut, ReservaUpdate
 
 router = APIRouter(tags=["ms-reservas"])
+
+
+def _to_utc_naive(dt: datetime) -> datetime:
+    # Normalize datetimes so API accepts both ISO with timezone (e.g. Z) and naive values.
+    if dt.tzinfo is None:
+        return dt
+    return dt.astimezone(timezone.utc).replace(tzinfo=None)
 
 
 def _policy(db: Session) -> PoliticaReserva:
@@ -58,15 +65,17 @@ def _has_overlap(query, fecha_inicio: datetime, fecha_fin: datetime):
 
 @router.post("/reservas")
 async def create_reserva(payload: ReservaIn, db: Session = Depends(get_db)):
+    fecha_inicio = _to_utc_naive(payload.fecha_inicio)
+    fecha_fin = _to_utc_naive(payload.fecha_fin)
     await _validate_space(payload.espacio_id)
-    await _validate_with_horarios(payload.espacio_id, payload.fecha_inicio, payload.fecha_fin)
+    await _validate_with_horarios(payload.espacio_id, fecha_inicio, fecha_fin)
     pol = _policy(db)
-    if payload.fecha_fin <= payload.fecha_inicio:
+    if fecha_fin <= fecha_inicio:
         raise HTTPException(status_code=400, detail="Rango de fechas invalido")
-    delta_hours = (payload.fecha_fin - payload.fecha_inicio).total_seconds() / 3600
+    delta_hours = (fecha_fin - fecha_inicio).total_seconds() / 3600
     if delta_hours > pol.duracion_max_horas:
         raise HTTPException(status_code=409, detail="La reserva supera la duracion maxima permitida")
-    hours_until_start = (payload.fecha_inicio - datetime.utcnow()).total_seconds() / 3600
+    hours_until_start = (fecha_inicio - datetime.utcnow()).total_seconds() / 3600
     if hours_until_start < pol.min_anticipacion_horas:
         raise HTTPException(status_code=409, detail="No cumple anticipacion minima")
     if hours_until_start > pol.max_anticipacion_dias * 24:
@@ -84,21 +93,21 @@ async def create_reserva(payload: ReservaIn, db: Session = Depends(get_db)):
             Reserva.espacio_id == payload.espacio_id,
             Reserva.estado.in_(["pendiente", "confirmada"]),
         ),
-        payload.fecha_inicio,
-        payload.fecha_fin,
+        fecha_inicio,
+        fecha_fin,
     )
     if overlap:
         raise HTTPException(status_code=409, detail="Conflicto de horario: espacio ya reservado")
 
     blocked = db.query(BloqueoEspacio).filter(
         BloqueoEspacio.espacio_id == payload.espacio_id,
-        BloqueoEspacio.fecha_inicio < payload.fecha_fin,
-        BloqueoEspacio.fecha_fin > payload.fecha_inicio,
+        BloqueoEspacio.fecha_inicio < fecha_fin,
+        BloqueoEspacio.fecha_fin > fecha_inicio,
     ).first()
     if blocked:
         raise HTTPException(status_code=409, detail="El espacio esta bloqueado en ese periodo")
 
-    row = Reserva(**payload.model_dump(), estado="pendiente")
+    row = Reserva(**payload.model_dump(), fecha_inicio=fecha_inicio, fecha_fin=fecha_fin, estado="pendiente")
     db.add(row)
     db.commit()
     db.refresh(row)
@@ -125,8 +134,8 @@ async def update_reserva(reserva_id: int, payload: ReservaUpdate, db: Session = 
     row = db.query(Reserva).filter(Reserva.id == reserva_id).first()
     if not row:
         raise HTTPException(status_code=404, detail="Reserva no encontrada")
-    start = payload.fecha_inicio or row.fecha_inicio
-    end = payload.fecha_fin or row.fecha_fin
+    start = _to_utc_naive(payload.fecha_inicio) if payload.fecha_inicio else row.fecha_inicio
+    end = _to_utc_naive(payload.fecha_fin) if payload.fecha_fin else row.fecha_fin
     await _validate_with_horarios(row.espacio_id, start, end)
     overlap = _has_overlap(
         db.query(Reserva).filter(
@@ -139,7 +148,12 @@ async def update_reserva(reserva_id: int, payload: ReservaUpdate, db: Session = 
     )
     if overlap:
         raise HTTPException(status_code=409, detail="Conflicto de horario en actualizacion")
-    for key, value in payload.model_dump(exclude_none=True).items():
+    data = payload.model_dump(exclude_none=True)
+    if "fecha_inicio" in data:
+        data["fecha_inicio"] = _to_utc_naive(payload.fecha_inicio)
+    if "fecha_fin" in data:
+        data["fecha_fin"] = _to_utc_naive(payload.fecha_fin)
+    for key, value in data.items():
         setattr(row, key, value)
     db.commit()
     db.refresh(row)
@@ -176,6 +190,8 @@ def cancel_reserva(reserva_id: int, payload: CancelReservaIn, db: Session = Depe
 
 @router.get("/disponibilidad")
 def disponibilidad(espacio_id: int, fecha_inicio: datetime, fecha_fin: datetime, db: Session = Depends(get_db)):
+    fecha_inicio = _to_utc_naive(fecha_inicio)
+    fecha_fin = _to_utc_naive(fecha_fin)
     overlap = _has_overlap(
         db.query(Reserva).filter(
             Reserva.espacio_id == espacio_id,
@@ -236,9 +252,11 @@ def update_policy(politica_id: int, payload: PoliticaIn, db: Session = Depends(g
 
 @router.post("/bloqueos")
 def create_block(payload: BloqueoIn, db: Session = Depends(get_db)):
-    if payload.fecha_fin <= payload.fecha_inicio:
+    fecha_inicio = _to_utc_naive(payload.fecha_inicio)
+    fecha_fin = _to_utc_naive(payload.fecha_fin)
+    if fecha_fin <= fecha_inicio:
         raise HTTPException(status_code=400, detail="Rango de bloqueo invalido")
-    row = BloqueoEspacio(**payload.model_dump())
+    row = BloqueoEspacio(**payload.model_dump(), fecha_inicio=fecha_inicio, fecha_fin=fecha_fin)
     db.add(row)
     db.commit()
     db.refresh(row)

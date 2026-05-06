@@ -21,7 +21,17 @@ def _user_to_out(user: Usuario) -> dict:
 def create_user(payload: UsuarioCreate, db: Session = Depends(get_db)):
     if db.query(Usuario).filter(or_(Usuario.username == payload.username, Usuario.email == payload.email)).first():
         raise HTTPException(status_code=409, detail="Usuario o correo ya existe")
-    plain = decrypt_aes_base64(payload.password_encrypted)
+    if payload.password:
+        plain = payload.password
+    elif payload.password_encrypted:
+        try:
+            plain = decrypt_aes_base64(payload.password_encrypted)
+        except Exception as exc:
+            raise HTTPException(status_code=400, detail="Password encrypted invalida") from exc
+    else:
+        raise HTTPException(status_code=400, detail="Debe enviar password o password_encrypted")
+    if len(plain.encode("utf-8")) > 72:
+        raise HTTPException(status_code=400, detail="La password no puede superar 72 bytes para bcrypt")
     user = Usuario(
         username=payload.username,
         email=payload.email,

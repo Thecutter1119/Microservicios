@@ -5,7 +5,8 @@ from pydantic import BaseModel, ConfigDict, EmailStr
 class UsuarioCreate(BaseModel):
     username: str
     email: EmailStr
-    password_encrypted: str
+    password: str | None = None
+    password_encrypted: str | None = None
     rol_principal_id: int | None = None
 
 
